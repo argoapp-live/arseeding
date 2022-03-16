@@ -1,0 +1,33 @@
+version: 2.1
+
+orbs:
+  aws-ecr: circleci/aws-ecr@6.15
+  aws-ecs: circleci/aws-ecs@2.0.0
+
+workflows:
+  build-deploy:
+    jobs:
+      - aws-ecr/build-and-push-image:
+          region: AWS_REGION
+          account-url: AWS_ECR_ACCOUNT_URL
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          create-repo: false
+          dockerfile: Dockerfile
+          name: aws-ecr-build-push-prod
+          repo: arseeding
+          tag: prod
+          extra-build-args: --build-arg CODE_VERSION=${CIRCLE_SHA1:0:7}
+          filters:
+            branches:
+              only: main
+      - aws-ecs/deploy-service-update:
+          cluster-name: "payment-api-prod"
+          container-image-name-updates: "container=payment-api-prod-api,tag=prod"
+          family: "payment-api-prod-api"
+          aws-region: AWS_DEFAULT_REGION_PROD
+          requires:
+            - aws-ecr-build-push-prod
+          filters:
+            branches:
+              only: main
