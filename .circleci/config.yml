@@ -14,20 +14,20 @@ workflows:
           aws-secret-access-key: AWS_SECRET_ACCESS_KEY
           create-repo: false
           dockerfile: Dockerfile
-          name: aws-ecr-build-push-prod
-          repo: arseeding
-          tag: prod
+          name: aws-ecr-build-push-dev
+          repo: arseeding-api
+          tag: dev
           extra-build-args: --build-arg CODE_VERSION=${CIRCLE_SHA1:0:7}
           filters:
             branches:
               only: main
       - aws-ecs/deploy-service-update:
-          cluster-name: "payment-api-prod"
-          container-image-name-updates: "container=payment-api-prod-api,tag=prod"
-          family: "payment-api-prod-api"
-          aws-region: AWS_DEFAULT_REGION_PROD
+          cluster-name: "arseeding-api-dev"
+          container-image-name-updates: "container=arseeding-api-dev-api,tag=prod"
+          family: "arseeding-api-dev-api"
+          aws-region: AWS_DEFAULT_REGION
           requires:
-            - aws-ecr-build-push-prod
+            - aws-ecr-build-push-dev
           filters:
             branches:
               only: main
